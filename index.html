@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<style>
+		.wrapper {
+			width: 100%;
+		}
+
+		.box {
+			position: relative;
+			margin: 0 auto;
+			width: 600px;
+			height: 800px;
+			background-color: aquamarine;
+		}
+		.header-btn-area {
+			text-align: center;
+		}
+		.switch {
+			position: relative;
+		}
+		.back-img {
+			position: absolute;
+			width: 600px;
+			height: 800px;
+			z-index: 100;
+			background-color: #dddddd;
+		}
+		.move-area {
+			position: absolute;
+			width: 600px;
+			height: 800px;
+			background-color: bisque;
+			/* z-index: 200; */
+		}
+		.square-obj {
+			position: absolute;
+			width: 100px;
+			height: 100px;
+			left: 30px;
+			top: 30px;
+			border: solid 6px rgb(9, 255, 0);
+		}
+	</style>
+	<body>
+		<div class="wrapper">
+			<div class="box">
+							<div class="header-btn-area">
+				<input type="checkbox" id="switch" />
+				<span class="title">層切替</span>
+			</div>
+				<div class="back-img"></div>
+				<div id="move-area" class="move-area">
+					<div class="square-obj" id="square-obj"></div>
+				</div>
+			</div>
+		</div>
+		<script>
+			let dropJudge = null;
+			const checkbox = document.getElementById("switch");
+			const moveArea = document.getElementById("move-area");
+			//初期表示の層と赤枠層との切替を行う。
+			checkbox.addEventListener("click", () => {
+				if (checkbox.checked) {
+					moveArea.style.zIndex = "200";
+				} else {
+					moveArea.style.zIndex = "0";
+				}
+			});
+
+			const squareObj = document.querySelector("#square-obj");
+
+			//赤枠をマウスダウンで実行する。
+			squareObj.onmousedown = function (event) {
+				squareObj.style.cursor = "grabbing";
+				squareObj.style.zIndex = 1000;
+				movePosition(event.clientX, event.clientY);
+
+				//赤枠初期位置を決定する。
+				function movePosition(clientX, clientY) {
+					//viewportのX軸 "0"の位置から赤枠配置エリアのtopまでの座標を取得
+					let areaTop = moveArea.getBoundingClientRect().top;
+
+					//viewportのY軸 "0"の位置から赤枠配置エリアのleftまでの座標を取得
+					let areaLeft = moveArea.getBoundingClientRect().left;
+					//現在のカーソルの位置から上記取得した値を減算することで赤枠のleft,topがカーソルの位置に合わさるようにする。
+					//画面サイズが変化してもviewportのXY軸を計算に使用している為、適用される。
+					squareObj.style.left = clientX-areaLeft + "px";
+					squareObj.style.top = clientY-areaTop + "px";
+				}
+
+				//赤枠をマウス移動で実行する。
+				function mouseMove(event){
+					movePosition(event.pageX, event.pageY);
+					let elemBelow = document.elementFromPoint(
+						event.clientX,
+						event.clientY
+					);
+					
+					let dropableBelow = elemBelow.closest("#move-area");
+					if(dropJudge != dropableBelow){
+						if(dropJudge){
+							notDroppable(dropJudge);
+						}
+						dropJudge = dropableBelow;
+						if(dropJudge){
+							onDroppable(dropJudge);
+						}
+					}
+				}
+				document.addEventListener("mousemove", mouseMove);
+
+				//マウスアップで実行する。
+				document.onmouseup = function(){
+					document.removeEventListener("mousemove", mouseMove);
+					squareObj.style.cursor =  "grab";
+				};
+			};
+			squareObj.ondragstart = function () {
+				return false;
+			};
+		</script>
+	</body>
+</html>
